@@ -1,0 +1,36 @@
+id: news2_tags_migration
+
+label: News (live) tags migration
+
+migration_group: news2
+
+migration_tags:
+  - news migration
+  - news tags
+
+source:
+  plugin: d7_news_tags
+
+  keys:
+    - tid
+
+destination:
+  plugin: entity:taxonomy_term
+
+process:
+  name: name
+
+  description: description
+
+  vid:
+    plugin: default_value
+    default_value: tags
+
+migration_dependencies: {}
+
+dependencies:
+  enforced:
+    module:
+      - tg_news2_migration
+
+

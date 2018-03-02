@@ -1,0 +1,76 @@
+id: news_unmanaged_files_migration
+
+label: News article unmanaged files migration
+
+migration_group: news
+
+migration_tags:
+  - news migration
+  - news articles
+  - news articles attachments
+
+source:
+  plugin: news_file_csv
+  filter:
+    fieldname: filetype
+    include:
+      - unmanaged
+
+  path: ./modules/custom/tg_news_migration/data/files.csv
+
+  keys:
+    - path
+
+  fields:
+    nid: not used in this migration
+    filetype: indicates the source field
+    path: file absolute path
+
+  column_names:
+    0:
+      nid: 'Source node id'
+    1:
+      filetype: 'Type (selector)'
+    2:
+      path: 'File path'
+
+# a bit hacky, as it doesnt register that the filed have been uploaded but hey!
+destination:
+  plugin: do_nothing
+
+process:
+  file_source:
+    -
+      plugin: skip_on_empty
+      source: path
+      method: row
+
+    -
+      plugin: source_path_name
+      folder: 'https://tes.com'
+      urldecode: true
+
+  file_dest:
+    -
+      plugin: nice_file_name
+      source: '@file_source'
+      basename: true
+      not_nice: true
+
+    -
+      plugin: source_path_name
+      folder: 'public://'
+
+  uri:
+      plugin: news_file_download
+      source:
+        - '@file_source'
+        - '@file_dest'
+      validate_source_uri: true  # custom setting
+
+migration_dependencies: {}
+
+dependencies:
+  enforced:
+    module:
+      - tg_news_migration

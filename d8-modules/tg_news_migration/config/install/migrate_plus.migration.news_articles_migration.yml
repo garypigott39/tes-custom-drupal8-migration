@@ -1,0 +1,184 @@
+id: news_articles_migration
+
+label: News articles migration
+
+migration_group: news
+
+migration_tags:
+  - news migration
+  - news articles
+
+source:
+  plugin: news_articles_csv
+  path: ./modules/custom/tg_news_migration/data/articles.csv
+
+  # custom config
+  source_domain: https://tes.com
+  files_folder: public://news-inline/
+  public_folder_uri: /sites/default/files/
+
+  keys:
+    - nid
+
+  # document the fields used by this bit of the migrate
+  fields:
+    nid:          Source (byline) node id.
+    title:        Title
+    standfirst:   Standfirst
+    body:         Content
+    #summary:      Summary (if any)
+    publication:  Publication date
+    images:       Hero image (will replace teaser if no teaser supplied)
+    teaser:       Teaser image
+    #files :       Attached files
+    category:     Category (will be appended to tags)
+    section:      Section (will be appended to tags)
+    tags:         Tags
+    authors:      Authors (nids)
+    related:      Related content (nids)
+    workflow:     Workflow state
+    # dummy fields
+    image_alt:    A dummy field used for the image alt text, if an image exists.
+    mobile_title: A dummy field used to generate mobile title.
+
+  # author image is created as a file entity in the image migration part of this
+  column_names:
+    0:
+      nid: 'Source Node id'
+    1:
+      title: 'Title'
+    2:
+      standfirst: 'Standfirst'
+    3:
+      body: 'Body'
+#    4:
+#      summary: 'Summary'
+    5:
+      publication: 'Publication date'
+    6:
+      images: 'Hero Image'
+    7:
+      teaser: 'Teaser Image'
+#    8:
+#      files: 'Attached files'
+    9:
+      category: 'Category'
+    10:
+      section: 'Section'
+    11:
+      tags: 'Tags'
+    12:
+      authors: 'Authors'
+    13:
+      related: 'Related content'
+    14:
+      workflow: 'Workflow state'
+
+    # @todo: other fields tba
+    # dummy fields
+    99:
+      image_alt: 'Dummy field'
+
+    100:
+      mobile_title: 'Dummy field'
+
+destination:
+  plugin: entity:node
+
+# @todo: this is a work in progress
+process:
+  title:
+    -
+      plugin: skip_on_empty
+      source: nid
+      method: row
+
+    -
+      plugin: callback
+      callable: ucwords
+      source: title
+
+  # its expected that this is plain text already
+  field_news_subtitle: standfirst
+
+  field_news_body/value: body
+
+#  field_news_body/summary: summary  # @todo: looks like we want plain text, will discuss with Scott
+
+  field_news_body/format: constants/format_tes
+
+  field_news_title_mobile: mobile_title  # @todo: tba - see prepare row
+
+  field_news_publication_date: publication
+
+#  field_news_attached_file:
+#    -
+#      plugin: skip_on_empty
+#      method: process
+#      source: files
+#
+#    -
+#      plugin: explode
+#      delimiter: ', '
+#
+#    -
+#      plugin: custom_migration_lookup
+#      migration: news_files_migration
+#      no_stub: true
+
+  field_news_image/target_id:
+    plugin: custom_migration_lookup
+    migration: news_files_migration
+    source: teaser
+    no_stub: true 
+
+  field_news_image/alt: image_alt
+
+  field_news_category:
+    -
+      plugin: explode
+      source: tags
+      delimiter: ', '
+
+    -
+      plugin: custom_migration_lookup
+      migration: news_tags_migration
+      no_stub: true  # if not found then dont create "stub"
+
+  field_news_author:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: authors
+
+    -
+      plugin: explode
+      delimiter: ', '
+
+    -
+      plugin: custom_migration_lookup
+      migration: news_authors_migration
+      no_stub: true  # if not found then dont create "stub"
+
+#  field_news_workflow: @todo
+
+#  field_news_related_content: @todo: extract source
+
+  type:
+    plugin: default_value
+    default_value: news_article
+
+  # @todo: use actual user once users extracted - tba?
+  uid: constants/admin_user
+
+migration_dependencies:
+  optional:
+    - news_tags_migration
+    - news_files_migration
+    - news_unmanaged_files_migration
+    - news_authors_migration
+
+dependencies:
+  enforced:
+    module:
+      - tg_news_migration

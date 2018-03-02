@@ -1,0 +1,28 @@
+id: news
+
+label: News Imports
+
+description: Work in progress News migration import group
+
+source_type: CSV File
+
+shared_configuration:
+  source:
+    plugin: csv
+    header_row_count: 1
+
+    constants:
+      admin_user: 1
+      format_tes: tg_html
+      permanent_file_status: true
+
+  process:
+    langcode:
+      plugin: default_value
+      source: language
+      default_value: "und"
+
+dependencies:
+  enforced:
+    module:
+      - tg_news_migration

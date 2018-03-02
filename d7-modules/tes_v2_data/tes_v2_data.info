@@ -1,0 +1,15 @@
+name = tes_v2_data
+description = 1-off data module (populates news nodes entity queue)
+package = TES
+core = 7.x
+php = 5.3
+version = "7.x-1.x-dev"
+
+; drush 1-off populate command
+files[] = tes_v2_data.drush.inc
+
+dependencies[] = ctools
+dependencies[] = entityqueue
+; and a feature
+dependencies[] = tes_v2_news_exports
+

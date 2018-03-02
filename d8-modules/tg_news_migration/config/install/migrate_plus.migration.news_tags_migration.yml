@@ -1,0 +1,42 @@
+id: news_tags_migration
+
+label: News tags migration
+
+migration_group: news
+
+migration_tags:
+  - news migration
+  - news article category
+
+source:
+  plugin: news_tags_csv
+  path: ./modules/custom/tg_news_migration/data/tags.csv
+
+  keys:
+    - title
+
+  column_names:
+    0:
+      tid: 'Taxonomy Term id'
+    1:
+      vocab: 'Source Vocabulary Name'
+    2:
+      title: 'Source Taxonomy Name'
+
+destination:
+  plugin: entity:taxonomy_term
+
+process:
+  name: title
+
+  vid:
+    plugin: default_value
+    default_value: news_article_category
+
+migration_dependencies: {}
+
+dependencies:
+  enforced:
+    module:
+      - tg_news_migration
+

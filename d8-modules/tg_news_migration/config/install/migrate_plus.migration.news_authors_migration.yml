@@ -1,0 +1,83 @@
+id: news_authors_migration
+
+label: News authors migration
+
+migration_group: news
+
+migration_tags:
+  - news migration
+  - news authors
+
+# @todo: split authors by title (delimited by comma or & or and, e.g. J Smith & L Rice should be 2 authors) also allow news article to have multiple authors
+# source data - see src/Plugin/migrate/source
+source:
+  plugin: news_authors_csv
+  path: ./modules/custom/tg_news_migration/data/authors.csv
+
+  keys:
+    - nid
+
+  # document the fields used by this bit of the migrate
+  fields:
+    nid: Source (byline) node id.
+    name: Author name.
+    body: Author description.
+    photo: Author photo source image filename, @see news_author_images_migration.
+    image_alt: A dummy field (not on CSV) which is used for the image alt text, if an image exists.
+
+
+  # author image is created as a file entity in the image migration part of this
+  column_names:
+    0:
+      nid: 'Source Node id'
+    1:
+      title: 'Author Name'
+    2:
+      body: 'Body'
+    3:
+      photo: 'Author Image'
+    4:
+      image_alt: 'Dummy field'
+
+destination:
+  plugin: entity:node
+
+# thanks to https://evolvingweb.ca/blog/drupal-8-migration-migrating-basic-data-part-1
+# and https://github.com/jigarius/drupal-migration-example/blob/8.x/config/install/migrate_plus.migration.program_data.yml
+process:
+  title:
+    -
+      plugin: skip_on_empty
+      source: nid
+      method: row
+
+    -
+      plugin: callback
+      callable: ucwords
+      source: title
+
+  field_author_description: body
+
+  field_author_image/target_id:
+    plugin: migration_lookup
+    migration: news_author_images_migration
+    source: photo
+    no_stub: true  # if not found then dont create "stub"
+
+  field_author_image/alt: image_alt
+
+  type:
+    plugin: default_value
+    default_value: author
+
+  uid: constants/admin_user
+
+migration_dependencies:
+  optional:
+    - news_author_images_migration
+
+dependencies:
+  enforced:
+    module:
+      - tg_news_migration
+

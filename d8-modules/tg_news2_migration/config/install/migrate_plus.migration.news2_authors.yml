@@ -1,0 +1,63 @@
+id: news2_authors_migration
+
+label: News (live) authors migration
+
+migration_group: news2
+
+migration_tags:
+  - news migration
+  - news authors
+
+source:
+  plugin: d7_authors
+
+  # override custom selection
+  selection:
+    from: 0
+    to:   99999999
+    live: true
+
+  keys:
+    - nid
+
+
+destination:
+  plugin: entity:node
+
+process:
+  title:
+    -
+      plugin: skip_on_empty
+      source: nid
+      method: row
+
+    -
+      plugin: callback
+      callable: ucwords
+      source: title
+
+  field_author_description: body
+
+  field_author_image/target_id:
+    plugin: migration_lookup
+    migration: news2_author_images_migration
+    source: photo_fid
+    no_stub: true  # if not found then dont create "stub"
+
+  field_author_image/alt: image_alt
+
+  type:
+    plugin: default_value
+    default_value: author
+
+  uid: constants/admin_user
+
+migration_dependencies:
+  optional:
+    - news2_author_images_migration
+
+dependencies:
+  enforced:
+    module:
+      - tg_news2_migration
+

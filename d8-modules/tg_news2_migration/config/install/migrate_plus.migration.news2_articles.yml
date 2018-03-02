@@ -1,0 +1,132 @@
+id: news2_articles_migration
+
+label: News (live) articles, and inline files, migration 
+
+migration_group: news2
+
+migration_tags:
+  - news migration
+  - news articles
+
+source:
+  plugin: d7_news_articles
+
+  # for inline files
+  folders:
+    target_folder: 'public://news-inline'
+    rename_by: subfolder  # or prefix
+
+  keys:
+    - nid
+
+destination:
+  plugin: entity:node
+
+process:
+  # had an issue with "stub entries" when I was using the skip functionality, and they were being thrown out!
+  title: title
+
+  # its expected that this is plain text already
+  field_news_subtitle: standfirst
+
+  field_news_body/value: body
+
+#  field_news_body/summary: summary  # @todo: looks like we want plain text, will discuss with Scott
+
+  field_news_body/format: constants/format_tes
+
+  field_news_title_mobile: mobile_title  # @todo: tba - see prepare row
+
+  field_news_publication_date: publication_date
+
+  field_news_attached_file:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: attached_files
+
+    -
+      plugin: explode
+      delimiter: ', '
+
+    -
+      plugin: migration_lookup
+      migration: news2_attachments_migration
+      no_stub: true
+
+  field_news_image/target_id:
+    plugin: migration_lookup
+    migration: news2_teaser_images_migration
+    source: nid  # image is a 1:1 mapping, so have done it on NID
+    no_stub: true
+
+  field_news_image/alt: image_alt
+
+  field_news_category:
+    -
+      plugin: skip_on_empty
+      source: tags
+      method: process
+
+    -
+      plugin: explode
+      delimiter: ', '
+
+# xref is now done in the source plugin "prepare row" bit
+#    -
+#      plugin: custom_migration_lookup
+#      migration: news_tags_migration
+#      no_stub: true  # if not found then dont create "stub"
+
+  field_news_author:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: author
+
+    -
+      plugin: explode
+      delimiter: ', '
+
+    -
+      plugin: migration_lookup
+      migration: news2_authors_migration
+      no_stub: true  # if not found then dont create "stub"
+
+  field_news_related_content:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: related
+
+    -
+      plugin: explode
+      delimiter: ', '
+
+    -
+      plugin: migration_lookup
+      migration: news2_articles_migration
+      # no_stub: defaults to false, as its based on the current migration we do want to create a stub for re-population
+
+#  field_news_workflow: @todo
+
+  type:
+    plugin: default_value
+    default_value: news_article
+
+  # @todo: use actual user once users extracted - tba?
+  uid: constants/admin_user
+
+migration_dependencies:
+  optional:
+    - news2_tags_migration
+    - news2_authors_migration
+    - news2_teaser_images_migration
+    - news2_attachments_migration
+
+dependencies:
+  enforced:
+    module:
+      - tg_news2_migration
+
+

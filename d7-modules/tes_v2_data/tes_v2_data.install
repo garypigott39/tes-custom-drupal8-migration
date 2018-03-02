@@ -1,0 +1,42 @@
+<?php
+/**
+ * @file
+ * Module install (just requirements).
+ */
+
+/**
+ * Implements hook_requirements();
+ * @return array
+ */
+function tes_v2_data_requirements($phase) {
+  $requirements = array();
+  if ($phase == 'runtime') {
+    if (!module_exists('entityqueue')) {
+      $requirements['entityqueue'] = array(
+        'title' => t('Entity Queue module required for TES V2 Data'),
+        'value' => t('Not installed'),
+        'description' => t('The 1-off TES V2 Data module requires the <a href="@module">Entity Queue</a> module as a dependency. Please download and install.', array('@module' => 'https://www.drupal.org/project/entityqueue')),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+    if (!module_exists('tes_v2_news_exports')) {
+      $requirements['feature'] = array(
+        'title' => t('Tes V2 News Exports feature required for TES V2 Data'),
+        'value' => t('Not installed'),
+        'description' => t('The 1-off TES V2 Data module requires the feature "tes_v2_news_exports" to be enabled as a dependency.'),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+    if (function_exists('entityqueue_queue_load')) {
+      if (!$queue = entityqueue_queue_load('tes_v2_test_articles')) {
+        $requirements['entityqueue_exists'] = array(
+          'title' => t('Entity Queue "tes_v2_test_articles" is required for TES V2 Data'),
+          'value' => t('Not exists'),
+          'description' => t('The 1-off TES V2 Data module requires the entity queue "tes_v2_test_articles" to work, please check the TES V2 Data feature'),
+          'severity' => REQUIREMENT_ERROR,
+        );
+      }
+    }
+  }
+  return $requirements;
+}

@@ -1,0 +1,57 @@
+id: news2_attachments_migration
+
+label: News (live) attached files migration
+
+migration_group: news2
+
+migration_tags:
+  - news migration
+  - news articles
+  - news articles attachments
+
+source:
+  plugin: d7_news_files
+
+  source_sql:
+    table: field_data_field_news_article_files
+    field: field_news_article_files_fid
+    live: true
+
+  folders:
+    target_folder: 'public://news-attachments'
+
+  # filename_prefix: 'Attachment - '
+
+  keys:
+    - fid
+
+destination:
+  plugin: entity:file
+
+process:
+  file_source: filepath
+
+  file_dest: destination_file_path
+
+  filename: filename
+
+  uri:
+      plugin: d7_news_file_download
+      source:
+        - '@file_source'
+        - '@file_dest'
+      guzzle:
+        timeout: 60
+
+  status: constants/permanent_file_status
+
+  uid: constants/admin_user
+
+
+migration_dependencies: {}
+
+dependencies:
+  enforced:
+    module:
+      - tg_news2_migration
+

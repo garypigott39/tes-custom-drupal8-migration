@@ -1,0 +1,55 @@
+id: news2
+
+label: News Full Imports
+
+description: News migration import group
+
+source_type: Database
+
+shared_configuration:
+  source:
+    key: migrate  # source database
+
+    # custom selection - for teasers and articles etc
+    selection:
+      from: 375000
+      # to:   99999999
+      live: true
+
+    # tags xref
+    tags_xref:
+      - regions
+      - phases
+      - subjects
+      - tags
+
+    # file folders, overridden on per basis
+    folders:
+      source_domain: 'https://tes.com'
+      source_public_folder_uri: '/sites/default/files'
+      target_folder: 'public://'
+      # public_folder_uri: '/sites/default/files'
+      urldecode: true
+
+    # required refdata
+    required:
+      vids:
+        - regions
+        - phases
+        - subjects
+
+    constants:
+      admin_user: 1
+      format_tes: tg_html
+      permanent_file_status: true
+
+  process:
+    langcode:
+      plugin: default_value
+      source: language
+      default_value: 'und'
+
+dependencies:
+  enforced:
+    module:
+      - tg_news2_migration

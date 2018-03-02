@@ -1,0 +1,91 @@
+id: news_files_migration
+
+label: News article files migration
+
+migration_group: news
+
+migration_tags:
+  - news migration
+  - news articles
+  - news articles attachments
+
+source:
+  plugin: news_file_csv
+  filter:
+    fieldname: filetype
+    exclude:
+      - unmanaged
+      - attachment
+
+  path: ./modules/custom/tg_news_migration/data/files.csv
+
+  keys:
+    - path
+
+  fields:
+    nid: not used in this migration
+    filetype: indicates the source field
+    path: file absolute path
+
+  column_names:
+    0:
+      nid: 'Source node id'
+    1:
+      filetype: 'Type (selector)'
+    2:
+      path: 'File path'
+
+destination:
+  plugin: entity:file
+
+process:
+  file_source:
+    -
+      plugin: skip_on_empty
+      source: path
+      method: row
+
+    -
+      plugin: source_path_name
+      folder: 'https://tes.com'
+      urldecode: true
+
+  file_dest:
+    -
+      plugin: nice_file_name
+      source: '@file_source'
+      basename: true
+
+    -
+      plugin: source_path_name
+      mapfolder:
+        fieldname: filetype
+        values:
+          - 'teaser image': 'public://news-images'
+          - 'hero image': 'public://news-images'
+          - 'attachment': 'public://news-attachments'
+      folder: 'public://'
+
+  filename:
+    plugin: callback
+    callable: basename
+    source: '@file_dest'
+
+  uri:
+      plugin: news_file_download
+      source:
+        - '@file_source'
+        - '@file_dest'
+      validate_source_uri: true  # custom setting
+
+  status: constants/permanent_file_status
+
+  uid: constants/admin_user
+
+migration_dependencies: {}
+
+dependencies:
+  enforced:
+    module:
+      - tg_news_migration
+

@@ -1,0 +1,9 @@
+name: News Migration 
+type: module
+description: Test version of news migration, kind of a work in progress
+core: 8.x
+package: Tes Global
+dependencies:
+  - migrate
+  - migrate_plus
+  - migrate_source_csv
