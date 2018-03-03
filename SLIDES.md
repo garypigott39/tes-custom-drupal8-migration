@@ -327,6 +327,7 @@ For details on the use source plugins have a look at https://www.drupal.org/docs
 | Core | explode | Turn a delimited string into an array, thereby allowing a 1:M field explosion (e.g. news tags) |
 | Core | migration_lookup | Standard mechanism of mapping entity ids (xref for entities created in other migrations or maybe even in this migration) |
 | Custom | d7_news_file_download | A custom file download (extends core Download) allowing for revised guzzle options. |
+| Custom | d7_stub_name | Allows for a nicer format stub name. |
 
 For more on the core process plugins see https://www.drupal.org/docs/8/api/migrate-api/migrate-process-plugins/list-of-core-process-plugins
 
