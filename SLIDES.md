@@ -14,6 +14,8 @@
 
 * Recently started working with D8.
 
+* Contact via twitter: @garypigott39 
+
 
 ## About Tes
 * Foremost education news site for teachers and school leaders 
