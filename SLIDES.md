@@ -6,9 +6,7 @@
 
 * Working at Tes for about 2.5 years.
 
-* Working with Drupal for about 5 years both backend and frontend, although I would classify myself as primarily a backend dev.
-
-* Prior to that was working as an applications developer for 15 years
+* Working with Drupal for about 5 years.
 
 * Mainly working in D7 although I did have a year of D6 (never want go back to that)
 
