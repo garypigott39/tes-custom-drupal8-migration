@@ -464,13 +464,19 @@ We define the connection in our migration file using the `source:key:connection-
  
 ```yaml
   source:
-    key: migrate  # source database connection
+    key: news_migrate  # source database connection
 ```
 
 and in out **settings.local.php** file
 
 ```php
-$databases['migrate']['default'] = array (
+// dont use "migrate" as this is the default migration connection name
+// and results in automatic creation of D6/D7 migrations and resultant
+// mapping tables etc
+//
+//$databases['migrate']['default'] = array (
+//
+$databases['news_migrate']['default'] = array (
   'database' => 'tes_cms',
   'username' => 'xxxx',
   'password' => 'xxxxxxxxx',
@@ -612,6 +618,7 @@ The Core process plugins are there to make our life easier, and (following the m
 | Core | explode | Turn a delimited string into an array, thereby allowing a 1:M field explosion (e.g. news tags) |
 | Core | migration_lookup | Standard mechanism of mapping entity ids (xref for entities created in other migrations or maybe even in this migration) |
 | Custom | d7_news_file_download | A custom file download (extends core Download) allowing for revised guzzle options. |
+| Customm | d7_stub_name | Allows for a nicer format stub name. |
 
 For more on the Core process plugins have a look at https://www.drupal.org/docs/8/api/migrate-api/migrate-process-plugins/list-of-core-process-plugins
 
@@ -651,15 +658,15 @@ class D7NewsFileDownload extends Download {
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition, FileSystemInterface $file_system, Client $http_client) {
-    if (isset($this->configuration['guzzle']) && is_array($this->configuration['guzzle'])) {
-      foreach ($this->configuration['guzzle'] as $option => $value) {
+    if (isset($configuration['guzzle']) && is_array($configuration['guzzle'])) {
+      foreach ($configuration['guzzle'] as $option => $value) {
         // overwrite any existing config option
         $configuration['guzzle_options'][$option] = $value;
       }
     }
+
     parent::__construct($configuration, $plugin_id, $plugin_definition, $file_system, $http_client);
   }
-}
 ```
 
 
@@ -942,6 +949,14 @@ It's just that the corresponding source database D6 table does not exist in our 
  There errors come from the various D6 migrations defined "out of the box" (see "Gotchas: loads of migration tables" above). 
 
 _For example the table "filter_formats" was replaced in D7 by the "filter_format" table (and our source database is Drupal 7)_. 
+
+
+#### Fix for excessive migration tables & warning messages 
+found the reason for this and it is due to the name of the database connection we were using. 
+
+Basically _"migrate"_ is the default connection name for migrations and as such enabling the migrate module then used this connection to build a set of migrations for all the taxonomies and entities on the source migration database.
+
+Changing the connection name to "news_migrate" means no more D6/D7 migration tables, as the module cant now find the source database from which to create these (entity) migrations.
 
 
 ### Gotchas - errors and white-screen

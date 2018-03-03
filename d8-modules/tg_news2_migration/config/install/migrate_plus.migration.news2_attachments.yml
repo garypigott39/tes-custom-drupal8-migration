@@ -41,7 +41,7 @@ process:
         - '@file_source'
         - '@file_dest'
       guzzle:
-        timeout: 60
+        timeout: 90
 
   status: constants/permanent_file_status
 

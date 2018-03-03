@@ -23,8 +23,12 @@ destination:
   plugin: entity:node
 
 process:
+  title:
+    -
+      plugin: d7_stub_name
+      source: title
+      prefix: 'Stub: '
   # had an issue with "stub entries" when I was using the skip functionality, and they were being thrown out!
-  title: title
 
   # its expected that this is plain text already
   field_news_subtitle: standfirst

@@ -91,8 +91,15 @@ INNER JOIN {node} n ON c.nid = n.nid) subquery; Array
 )
 
 It's just that the corresponding source database D6 table does not exist in our migrate database "tes_cms" (see Database connection above). _The table was replaced in D7 by the comment table (and our source database is Drupal 7)_. 
-   
-    
+
+**Fix for excessive migration tables & warning messages** 
+found the reason for this and it is due to the name of the database connection we were using. 
+
+Basically "migrate" is the default connection name for migrations and as such enabling the migrate module then used this connection to build a set of migrations for all the taxonomies and entities on the source migration database.
+
+Changing the connection name to "news_migrate" means no more D6/D7 migration tables, as the module cant now find the source database from which to create these (entity) migrations.
+
+     
 ## Gotchas - stub entry creation
 So, I was getting some SQL Integrity errors ("title cannot be NULL") in my message table for the news articles part of the migration. 
 
@@ -123,7 +130,13 @@ Now, the creation of stub entries may cause the **imported total to exceed** the
 The source database connection is defined in the settings.php (or local settings) file as an additional database connection array element, for example
 
 ```php
-$databases['migrate']['default'] = array (
+// dont use "migrate" as this is the default migration connection name
+// and results in automatic creation of D6/D7 migrations and resultant
+// mapping tables etc
+//
+//$databases['migrate']['default'] = array (
+//
+$databases['news_migrate']['default'] = array (
   'database' => 'tes_cms',
   'username' => 'user',
   'password' => 'xxxxxxxxx',
@@ -140,7 +153,7 @@ This is then specified in the config YML files as the source of the migration, f
 ```yaml
 shared_configuration:
    source:
-     key: migrate  # or whatever is the named element in settings (see above)
+     key: news_migrate  # or whatever is the named element in settings (see above)
 ```
 
   
@@ -443,6 +456,7 @@ We are actually using quite a few Core process plugins, they are after all there
 | Core | explode | Turn a delimited string into an array, thereby allowing a 1:M field explosion (e.g. news tags) |
 | Core | migration_lookup | Standard mechanism of mapping entity ids (xref for entities created in other migrations or maybe even in this migration) |
 | Custom | d7_news_file_download | A custom file download (extends core Download) allowing for revised guzzle options. |
+| Customm | d7_stub_name | Allows for a nicer format stub name. |
 
 In the test CSV migration we did much more of our field manipulation in the process functionality (unlike this migration where we do most of this in the source _prepareRow_) and so we used lots more, including the following **custom** plugins:
 

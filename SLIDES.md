@@ -138,7 +138,13 @@ Modules required include:
 Settings file (settings.local.php) entry
 
 ```php
-$databases['migrate']['default'] = array (
+// dont use "migrate" as this is the default migration connection name
+// and results in automatic creation of D6/D7 migrations and resultant
+// mapping tables etc
+//
+//$databases['migrate']['default'] = array (
+//
+$databases['news_migrate']['default'] = array (
   'database' => 'tes_cms',
   'username' => 'xxxx',
   'password' => 'xxxxxxxxx',
@@ -154,7 +160,7 @@ Define **source:key:connection-name** in config
  
 ```yaml
   source:
-    key: migrate  # source database connection
+    key: news_migrate  # source database connection
 ```
 
 
@@ -362,16 +368,38 @@ class D7NewsFileDownload extends Download {
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition, FileSystemInterface $file_system, Client $http_client) {
-    if (isset($this->configuration['guzzle']) && is_array($this->configuration['guzzle'])) {
-      foreach ($this->configuration['guzzle'] as $option => $value) {
+    if (isset($configuration['guzzle']) && is_array($configuration['guzzle'])) {
+      foreach ($configuration['guzzle'] as $option => $value) {
         // overwrite any existing config option
         $configuration['guzzle_options'][$option] = $value;
       }
     }
+
     parent::__construct($configuration, $plugin_id, $plugin_definition, $file_system, $http_client);
   }
 }
 ```  
+
+
+### Custom process plugin: d7_stub_name
+* Extending `ProcessPluginBase` class
+
+* Provides ability to define a nicer format stub name.
+
+* Only changes the value when `$row->isStub()`
+
+```yaml
+# config snippet showing it in use
+process:
+    title:
+      -
+        plugin: d7_stub_name
+        source: title
+        prefix: 'Stub: '
+```
+
+![Created stub entries with nicer stub name](./img/nicer-stub-names.png)
+
 
 
 ## Destination Plugins
@@ -487,9 +515,9 @@ DELETE FROM migrate_map_news2_attachments_migration WHERE destid1 IS NULL AND so
 
 * config left over after module uninstall - resolved by adding an **enforced dependency** to the migration config files
 
-* loads of migration tables 
+* loads of migration tables (fixed by not using "migrate" as connection name)
 
-* unexpected warning messages when running `drush ms`
+* unexpected warning messages when running `drush ms` (fixed by not using "migrate" as the connection name)
 
 * errors and the (not so) white screen of death
 

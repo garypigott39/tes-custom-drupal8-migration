@@ -8,7 +8,10 @@ source_type: Database
 
 shared_configuration:
   source:
-    key: migrate  # source database
+    # source database - dont use "migrate" as thats the default migration
+    # connection and will result in loads of D6/D7 mapping tables when you
+    # enable migrate
+    key: news_migrate  # source database
 
     # custom selection - for teasers and articles etc
     selection:
