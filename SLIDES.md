@@ -2,6 +2,8 @@
 
 
 ## About me
+* Gary Pigott
+
 * Drupal developer ("Software Engineer")
 
 * Working at Tes for about 2.5 years.
