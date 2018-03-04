@@ -4,22 +4,6 @@
 See also [presentation slides](./SLIDES.md), the [drupal 8 migration source code](./d8-modules/) and [drupal 7 extract custom code](./d7-modules)
 
 
-## About me
-* Gary Pigott
-
-* Drupal developer ("Software Engineer")
-
-* Working at Tes for about 2.5 years.
-
-* Working with Drupal for about 5 years both backend and frontend, although I would classify myself as primarily a backend dev.
-
-* Prior to that was working as an applications developer for 15 years
-
-* Mainly working in D7 although I did have a year of D6 (never want go back to that)
-
-* Recently started working with D8.
-
-
 ## About Tes
 * Foremost education news site for teachers and school leaders 
 
@@ -34,7 +18,7 @@ See also [presentation slides](./SLIDES.md), the [drupal 8 migration source code
 * See [https://www.tes.com/](http://tes.com) and [https://www.tes.com/about](http://tes.com/about)
 
 
-## What's this presentation about?
+## What's this about?
 So, I kind of didn't know what to call this presentation the sort of ideas I had were: _"first tentative steps into D8 migration", "a beginner's guide to Drupal 8 migrations", "my migration headaches"_ ... but I ended up with the catchy title above.
 
 So, what this presentation is:
@@ -117,8 +101,6 @@ It might be easier to migrate some content "manually" rather than write a migrat
 Talk with existing users (content editors) to get feedback about what works, what doesn't, any ambiguity etc.
  
 Doing this phase will help you build target content types, that and any pre-defined requirements (e.g. "must have a mobile version of the title").
- 
- 
 
 
 ## Migration problem

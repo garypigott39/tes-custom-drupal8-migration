@@ -66,9 +66,9 @@ Modules required include:
 
 * migrate_tools (contrib)
 
-* source **SQLBase** migration type part of the core migrate soure plugins
+* **SQLBase** migration type part of the core migrate soure plugins
 
-* if non-sql data source then various contrib modules available to (e.g. migrate_source_csv)
+* if non-sql data source then various contrib modules available (e.g. migrate_source_csv)
 
 * migrate_plus includes example migration modules
 
