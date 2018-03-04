@@ -1,7 +1,9 @@
 # Tes - Custom Drupal 8 Migration
 
 
-See also [presentation slides](./SLIDES.md), the [drupal 8 migration source code](./d8-modules/) and [drupal 7 extract custom code](./d7-modules)
+This is the full notes related to the Drupal Camp London 2018 presentation about the custom D8 migration we're doing at Tes.
+
+See also [presentation slides](https://garypigott39.github.io/tes-custom-d8-migration-reveal-js-presentation/), the [drupal 8 migration source code](../d8-modules/) and [drupal 7 extract custom code](../d7-modules)
 
 
 ## About Tes
