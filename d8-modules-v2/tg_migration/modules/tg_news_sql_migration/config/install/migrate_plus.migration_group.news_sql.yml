@@ -1,0 +1,53 @@
+id: news_sql
+
+label: News SQL Imports
+
+description: News SQL import - migration group
+
+source_type: Database
+
+shared_configuration:
+  source:
+    # source database - dont use "migrate" as thats the default migration connection and will result in
+    # loads of D6/D7 mapping tables when you enable migrate
+    key: 'news_migrate'  # source database
+
+    # custom selection - for teasers and articles etc
+    selection:
+      from: 375000
+      to:   99999999
+      status: 1
+      #entity_queue: 'tes_v2_test_articles'
+
+    required:
+      vids:
+        - regions
+        - phases
+        - subjects
+        - workplaces
+
+    tags_xref:
+      - regions
+      - phases
+      - subjects
+      - workplaces
+      - news_tags
+
+    constants:
+      admin_user: 1
+      body_format: 'standard_html'
+      published_state: 'published'
+      permanent_file_status: true
+      pathauto_disabled: 0
+
+  process:
+    langcode:
+      plugin: default_value
+      source: language
+      default_value: 'und'
+
+dependencies:
+  enforced:
+    module:
+      - tg_migration
+      - tg_news_sql_migration

@@ -1,0 +1,56 @@
+id: news_csv_article_uris
+
+label: News article uris - CSV
+
+migration_group: news_csv
+
+migration_tags:
+  - news migration
+  - news article urls csv
+
+source:
+  filename: articles.csv
+
+  keys:
+    - nid
+
+  # only need NID and uri
+  column_names:
+    0:
+      nid: 'Source Node id'
+    2:
+      uri: 'Uri - path alias'
+
+  constants:
+    node_prefix: '/node/'
+
+#########################################################################################################
+# Thanks to:
+# - https://evolvingweb.ca/blog/migrating-aliases-and-redirects-drupal-8
+# - https://github.com/evolvingweb/migrate_example_paths
+#########################################################################################################
+destination:
+  plugin: url_alias
+
+process:
+  temp_nid:
+    -
+      plugin: migration_lookup
+      migration: news_csv_articles
+      source: nid
+    -
+      plugin: tg_skip_on_empty
+      method: row
+
+  source:
+    plugin: tg_concat
+    source:
+      - constants/node_prefix
+      - '@temp_nid'
+    delimiter: '/'
+
+  alias: uri
+
+migration_dependencies:
+  optional:
+    - news_csv_articles

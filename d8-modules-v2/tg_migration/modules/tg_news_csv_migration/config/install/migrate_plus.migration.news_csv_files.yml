@@ -1,0 +1,110 @@
+id: news_csv_files
+
+label: News files - CSV
+
+migration_group: news_csv
+
+migration_tags:
+  - news migration
+  - news csv files
+
+#########################################################################################################
+# Note, duplicates (by keys field) are ignored by the Core source processing and will be flagged up
+# as "UNPROCESSED" rows in the migration.
+#
+# In the case of these files this is not a problem as they are the same file and the subsequent mappings
+# all work as expected (as thats also by path). But if they were marked as "REQUIRED" migration dependencies
+# then they would be assumed to have not completed.
+#
+# @todo: some way to identify these
+#########################################################################################################
+
+source:
+  filename: files.csv
+
+  keys:
+    - uri
+
+  column_names:
+    0:
+      nid: 'Source node id - not used'
+    1:
+      type: 'File type'
+    2:
+      uri: 'File path (uri)'
+
+destination:
+  plugin: entity:file
+
+process:
+  # just used for filtering out unwanted rows
+  temp_filter_row:
+    -
+      plugin: tg_filter
+      source: type
+      match:
+        - '/^attachment/'
+      negate: true
+    -
+      plugin: tg_skip_on_empty
+      method: row
+
+  temp_file_name:
+    plugin: tg_nice_file_name
+    source: uri
+    basename: true
+
+  file_source:
+    plugin: tg_source_file_path
+    source: uri
+    file_source:
+      domain: 'https://www.tes.com'
+    #urlencode: true
+
+  file_dest:
+    -
+      plugin: callback
+      source: uri
+      callable: basename
+    -
+      plugin: tg_file_path
+      folder:
+        map_field: type
+        map_values:
+          'teaser image': 'public://news-images'
+          'hero image': 'public://news-images'
+        default: 'public://trash'  # there wont be any
+      niceify: true
+      shorten: 60
+
+  filename:
+    -
+      plugin: tg_nice_stub_name
+      source: '@temp_file_name'
+      prefix: 'Stub file: '
+    -
+      plugin: tg_abbrev
+      length: 60
+      elipse: '...'
+
+#########################################################################################################
+# We aren't migrating the filetype (type), instead we let the destination entity sort that out for us.
+# However, when its a stub it comes over with a Random Type and it might be useful to have a default
+# value for that perhaps.
+#
+# In the SQL migration we do pickup the "type" so can map that and have a default value.
+#########################################################################################################
+
+  uri:
+    plugin: tg_file_download
+    source:
+      - '@file_source'
+      - '@file_dest'
+    guzzle:
+      timeout: 90
+
+  status: constants/permanent_file_status
+
+  uid: constants/admin_user
+
+migration_dependencies: {}

@@ -1,0 +1,81 @@
+id: news_sql_teasers
+
+label: News teaser images - SQL
+
+migration_group: news_sql
+
+migration_tags:
+  - news migration
+  - news author teasers sql
+
+source:
+  plugin: tg_sql_files
+
+  source_sql:
+    table: field_data_field_news_article_teaser_image
+    field: field_news_article_teaser_image_fid
+    bundle: 'news_article'
+    delta: 0
+
+  keys:
+    - fid
+
+destination:
+  plugin: entity:file
+
+process:
+  temp_file_name:
+    plugin: tg_nice_file_name
+    source: uri
+    basename: true
+
+  file_source:
+    -
+      plugin: tg_skip_on_empty
+      source: uri
+      method: row
+    -
+      plugin: tg_source_file_path
+      file_source:
+        domain: 'https://www.tes.com'
+
+  file_dest:
+    -
+      plugin: callback
+      source: uri
+      callable: basename
+    -
+      plugin: tg_file_path
+      folder: 'public://news-images'
+      niceify: true
+      shorten: 60
+
+  filename:
+    -
+      plugin: tg_nice_stub_name
+      source: '@temp_file_name'
+      prefix: 'Stub teaser image: '
+    -
+      plugin: tg_abbrev
+      length: 60
+      elipse: '...'
+
+  type:
+    plugin: default_value
+    source: type
+    default_value: 'undefined'
+
+  uri:
+    plugin: tg_file_download
+    source:
+      - '@file_source'
+      - '@file_dest'
+    guzzle:
+      timeout: 90
+    clear_stubs: true
+
+  status: constants/permanent_file_status
+
+  uid: constants/admin_user
+
+migration_dependencies: {}

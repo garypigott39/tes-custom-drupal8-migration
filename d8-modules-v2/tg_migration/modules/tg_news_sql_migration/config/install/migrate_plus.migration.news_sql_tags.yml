@@ -1,0 +1,30 @@
+id: news_sql_tags
+
+label: News tags - SQL
+
+migration_group: news_sql
+
+migration_tags:
+  - news migration
+  - news tags sql
+
+source:
+  plugin: tg_sql_tags
+
+  keys:
+    - name  # so we niceify the name before passing it to process, this needs repeating in the News part for the lookup!
+
+destination:
+  plugin: entity:taxonomy_term
+
+process:
+  name:
+    plugin: tg_nice_stub_name
+    source: name
+    prefix: 'Stub: '  # we dont want this to ever happen!!!
+
+  vid:
+    plugin: default_value
+    default_value: 'news_tags'
+
+migration_dependencies: {}

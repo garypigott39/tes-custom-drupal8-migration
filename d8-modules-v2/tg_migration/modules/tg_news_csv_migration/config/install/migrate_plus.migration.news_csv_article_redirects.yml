@@ -1,0 +1,67 @@
+id: news_csv_article_redirects
+
+label: News article redirects - CSV
+
+migration_group: news_csv
+
+migration_tags:
+  - news migration
+  - news article redirects csv
+
+source:
+  filename: articles.csv
+
+  keys:
+    - nid
+
+  # only need NID and uri
+  column_names:
+    0:
+      nid: 'Source Node id'
+    2:
+      uri: 'Uri - path alias'
+
+  constants:
+    redirect_title:  'News article migration'
+    redirect_prefix: 'entity:node/'
+    redirect_status: 301
+
+#########################################################################################################
+# Thanks to D7 examples in redirect module (and inspecting table)
+#########################################################################################################
+destination:
+  plugin: entity:redirect
+
+process:
+  temp_nid:
+    -
+      plugin: migration_lookup
+      migration: news_csv_articles
+      source: nid
+      no_stub: true
+    -
+      plugin: tg_skip_on_empty
+      method: row
+
+  # not used but potentially useful for documentation
+  redirect_redirect/title: constants/redirect_title
+
+  redirect_source/path:
+    plugin: tg_trim
+    source: uri
+    character: '/'
+
+  redirect_redirect/uri:
+    plugin: tg_concat
+    source:
+      - constants/redirect_prefix
+      - '@temp_nid'
+    delimiter: '/'
+
+  status_code: constants/redirect_status
+
+  uid: constants/admin_user
+
+migration_dependencies:
+  optional:
+    - news_csv_articles

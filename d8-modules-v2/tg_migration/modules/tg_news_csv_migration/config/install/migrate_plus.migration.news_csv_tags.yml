@@ -1,0 +1,39 @@
+id: news_csv_tags
+
+label: News tags - CSV
+
+migration_group: news_csv
+
+migration_tags:
+  - news migration
+  - news tags csv
+
+source:
+  plugin: tg_csv_tags
+  filename: tags.csv
+
+  keys:
+    - name  # so we niceify the name before passing it to process, this needs repeating in the News part for the lookup!
+
+  column_names:
+    0:
+      tid: 'Taxonomy term id'
+    1:
+      vocab: 'Source vocabulary name - not used here'
+    2:
+      name: 'Taxonomy Name'
+
+destination:
+  plugin: entity:taxonomy_term
+
+process:
+  name:
+    plugin: tg_nice_stub_name
+    source: name
+    prefix: 'Stub: '  # we dont want this to ever happen!!!
+
+  vid:
+    plugin: default_value
+    default_value: 'news_tags'
+
+migration_dependencies: {}

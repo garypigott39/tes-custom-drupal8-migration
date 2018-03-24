@@ -1,0 +1,97 @@
+id: news_csv_media
+
+label: News media - CSV
+
+migration_group: news_csv
+
+migration_tags:
+  - news migration
+  - news csv media
+
+#########################################################################################################
+# So, as we want to reuse existing files etc (e.g. teaser image fields etc) we are loading those as media
+# entities. The migration process is: (a) create the file entity (b) create the media entity from it.
+# 
+# Thanks: https://www.previousnext.com.au/blog/migrating-drupal-7-file-entities-drupal-8-media-entities
+#########################################################################################################
+
+source:
+  filename: files.csv
+
+  keys:
+    - uri
+
+  column_names:
+    0:
+      nid: 'Source node id - not used'
+    1:
+      type: 'File type'
+    2:
+      uri: 'File path (uri)'
+
+destination:
+  plugin: entity:media
+
+process:
+  # just used for filtering out unwanted rows
+  temp_filter_row:
+    -
+      plugin: tg_filter
+      source: type
+      match:
+        - '/^attachment/'
+      negate: true
+    -
+      plugin: tg_skip_on_empty
+      method: row
+
+  temp_file_object:
+    -
+      plugin: migration_lookup
+      migration: news_csv_files
+      source: uri
+    -
+      plugin: tg_file_object
+      array: true
+      skip: row
+
+  name:
+    plugin: extract
+    source: '@temp_file_object'
+    index:
+      - filename
+
+  # Image field see media_entity.bundle.image.yml.
+  field_media_image/target_id:
+    plugin: extract
+    source: '@temp_file_object'
+    index:
+      - fid
+
+  field_media_image/alt:
+    plugin: default_value
+    default_value: 'News article image'
+
+#  field_media_image/title
+
+#  field_description:
+
+#  field_caption:
+
+  created:
+    plugin: extract
+    source: '@temp_file_object'
+    index:
+      - created
+
+  bundle:
+    plugin: default_value
+    default_value: 'image'
+
+#  status: constants/permanent_file_status
+
+  uid: constants/admin_user
+
+migration_dependencies: 
+  optional:
+    - news_csv_files

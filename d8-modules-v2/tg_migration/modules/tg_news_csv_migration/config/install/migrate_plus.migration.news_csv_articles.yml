@@ -1,0 +1,240 @@
+id: news_csv_articles
+
+label: News articles - CSV
+
+migration_group: news_csv
+
+migration_tags:
+  - news migration
+  - news articles csv
+
+source:
+  plugin: tg_csv_articles
+  filename: articles.csv
+
+  keys:
+    - nid
+
+  # author image is created as a file entity in the image migration part of this
+  column_names:
+    0:
+      nid: 'Source Node id'
+    1:
+      title: 'Title'
+    2:
+      uri: 'Uri - path alias'
+    3:
+      standfirst: 'Standfirst'
+    4:
+      body: 'Body'
+    5:
+      summary: 'Summary - not used'
+    6:
+      publication: 'Publication date'
+    7:
+      images: 'Hero Image'
+    8:
+      teaser: 'Teaser Image'
+    9:
+      files: 'Attached files - not used'
+    10:
+      category: 'Category'
+    11:
+      section: 'Section'
+    12:
+      tags: 'Tags'
+    13:
+      authors: 'Authors'
+    14:
+      related: 'Related content'
+    15:
+      workflow: 'Workflow state - not used'
+
+  constants:
+    image_for: 'Image for:'
+
+#########################################################################################################
+# based on content structure @ 12/03/2018:
+#
+# fields:
+#   nid:                             'Source node id'
+#   title:                           'Article Title'
+#   field_news_author:               'Article Author'
+#   field_news_body:                 'Article Body'
+#   field_news_standfirst_article:   'Article Standfirst'
+#   field_news_standfirst_short:     'Card Standfirst - Short'
+#   field_news_standfirst_long:      'Card Standfirst - Long'
+#   field_news_tags:                 'Tags'
+#   field_news_image:                'Image'
+#   field_news_related_articles:     'Related content'
+#   field_news_headline_short:       'Short Headline'
+#
+#########################################################################################################
+destination:
+  plugin: entity:node
+
+#########################################################################################################
+# Fields ignored (or not extracted):
+#  - post script, very little content plus what there is isnt worth having
+#  - attached files, decision made not to migrate because limited content & atached files would now be
+#    effectively inline files (part of body content)
+# - workflow state, as we are taking just published articles we only need published state so ignoring
+# - uid, we aren't migrating users yet so this is the admin user
+#########################################################################################################
+process:
+  title:
+    plugin: tg_nice_stub_name
+    source: title
+    prefix: 'Stub: '
+
+  field_news_author:
+    -
+      plugin: tg_skip_on_empty
+      source: authors
+    -
+      plugin: tg_explode_csv
+    -
+      plugin: migration_lookup
+      migration: news_csv_authors
+
+  field_news_body/value:
+    plugin: tg_inline_files
+    source: body
+
+    file_source:
+      # database: 'news_migrate'
+      domain:   'https://www.tes.com'
+      public_folder_uri: '/sites/default/files'  # the default
+
+    file_target:
+      folder: 'public://news-inline'
+      public_folder_uri: '/sites/default/files'  # the default
+      # media: true
+      shorten: 60
+
+  field_news_body/format: constants/body_format
+
+  field_news_standfirst_article:
+    plugin: tg_plain_text
+    source: standfirst
+
+#########################################################################################################
+# Decide on lengths of fields in short/long field
+# @todo - field_news_headline_short
+# @todo - field_news_standfirst_short
+# @todo - field_news_standfirst_long
+#########################################################################################################
+
+  field_news_standfirst_short:
+    plugin: tg_abbrev
+    source: '@field_news_standfirst_article'
+    length: 75
+    elipse: '...'
+
+  field_news_standfirst_long:
+    plugin: tg_abbrev
+    source: '@field_news_standfirst_article'
+    length: 250
+    elipse: '...'
+
+  field_news_tags:
+    -
+      plugin: tg_explode_csv
+      source: tags
+    -
+      plugin: tg_news_tags_migration_lookup
+      migration: news_csv_tags
+      tags_xref: source/tags_xref
+
+  field_news_image/target_id:
+    -
+      plugin: tg_choose_value
+      fieldnames:
+        - teaser
+        - images
+      multiple: false
+    -
+      plugin: migration_lookup
+      migration: news_csv_media
+
+#########################################################################################################
+# Now, its a media item the alt text is against the media item
+#
+#  field_news_image/alt:
+#    -
+#      plugin: tg_skip_on_empty
+#      source: '@field_news_image/target_id'
+#    -
+#      plugin: tg_concat
+#      source:
+#        - constants/image_for
+#        - '@title'
+#      delimiter: ' '
+#########################################################################################################
+
+  created:
+    plugin: callback
+    source: publication
+    callable: strtotime
+
+  changed: '@created'
+
+  field_news_related_articles:
+    -
+      plugin: tg_skip_on_empty
+      source: related
+    -
+      plugin: tg_explode_csv
+    -
+      plugin: migration_lookup
+      migration: news_csv_articles
+
+  field_news_headline_short:
+    plugin: tg_abbrev
+    source: '@title'
+    length: 60
+    elipse: '...'
+
+#########################################################################################################
+# We will turn off pathauto for these nodes & set the path in the migration to that of the SOURCE uri,
+# thanks also to -> https://www.calebthorne.com/blog/drupal/2016/07/16/drupal-8-migrate-pathauto
+#
+# Note, the below assumes that pathauto module is enabled
+#
+# 19/03/2018: Subsequent change, decision to keep new paths and instead use "redirects" for old URLs
+# hence commented out below.
+#########################################################################################################
+#  path/pathauto:
+#    plugin:        default_value
+#    default_value: constants/pathauto_disabled
+#
+#  path/alias: uri
+
+  type:
+    plugin: default_value
+    default_value: 'news_article'
+
+  # thanks -> https://www.drupal.org/project/drupal/issues/2848089
+  moderation_state: constants/published_state
+
+  uid: constants/admin_user
+
+#########################################################################################################
+#  field_news_attached_file:
+#    -
+#      plugin: tg_skip_on_empty
+#      source: files
+#    -
+#      plugin: tg_explode
+#      delimiter: ', '
+#    -
+#      plugin: migration_lookup
+#      migration: news_csv_files
+#########################################################################################################
+
+migration_dependencies:
+  optional:
+    - news_csv_tags
+    - news_csv_files
+    - news_csv_media
+    - news_csv_authors

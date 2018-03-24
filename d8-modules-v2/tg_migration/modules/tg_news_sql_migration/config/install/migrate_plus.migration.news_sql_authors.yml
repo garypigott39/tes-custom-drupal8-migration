@@ -1,0 +1,92 @@
+id: news_sql_authors
+
+label: News authors - SQL
+
+migration_group: news_sql
+
+migration_tags:
+  - news migration
+  - news authors sql
+
+source:
+  plugin: tg_sql_authors
+
+  keys:
+    - nid
+
+  constants:
+    picture: 'picture'
+
+#########################################################################################################
+# @todo: potentially - split authors by title (delimited by comma or & or and) e.g. J Smith & L Rice should be 2 authors) also allow news article to have multiple authors
+#########################################################################################################
+
+destination:
+  plugin: entity:node
+
+process:
+  temp_image_alt_suffix:
+    plugin:        default_value
+    default_value: 'picture'
+
+  temp_name_field:
+    -
+      plugin: tg_skip_on_empty
+      source: title
+      method: row
+    -
+      plugin: callback
+      callable: ucwords
+    -
+      plugin: tg_plain_text
+    -
+      plugin: tg_replace_string
+      regex:  '/ and /i'
+      replacement: ' & '
+
+  title:
+    plugin: tg_nice_stub_name
+    source: '@temp_name_field'
+    prefix: 'Stub author: '
+
+  field_author_description:
+    plugin: tg_plain_text
+    source: body
+
+  field_author_image/target_id:
+    plugin:    migration_lookup
+    migration: news_sql_author_images
+    source:    photo_fid
+
+  field_author_image/alt:
+    -
+      plugin: tg_skip_on_empty
+      source: photo_fid
+      method: process
+    -
+      plugin: tg_concat
+      source:
+        - '@title'
+        - constants/picture
+      delimiter: ' '
+
+  field_author_twitter_handle:
+    -
+      plugin: tg_skip_on_empty
+      source: twitter
+    -
+      plugin: tg_twitter_handle
+    -
+      plugin: tg_plain_text
+
+  type:
+    plugin:        default_value
+    default_value: 'author'
+
+  moderation_state: constants/published_state
+
+  uid: constants/admin_user
+
+migration_dependencies:
+  optional:
+    - news_sql_author_images

@@ -1,0 +1,48 @@
+id: news_csv
+
+label: News CSV Imports
+
+description: News CSV import - migration group
+
+source_type: CSV
+
+shared_configuration:
+  source:
+    plugin: tg_csv
+    header_row_count: 1
+
+    # custom config
+    path: './modules/custom/tg_migration/modules/tg_news_csv_migration/data/'
+
+    required:
+      vids:
+        - regions
+        - phases
+        - subjects
+        - workplaces
+
+    tags_xref:
+      - regions
+      - phases
+      - subjects
+      - workplaces
+      - news_tags
+
+    constants:
+      admin_user: 1
+      body_format: 'standard_html'
+      published_state: 'published'
+      permanent_file_status: true
+      pathauto_disabled: 0
+
+  process:
+    langcode:
+      plugin: default_value
+      source: language
+      default_value: 'und'
+
+dependencies:
+  enforced:
+    module:
+      - tg_migration
+      - tg_news_csv_migration

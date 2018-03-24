@@ -1,0 +1,7 @@
+name: News SQL Migration 
+type: module
+description: Live (sql) version of news migration
+core: 8.x
+package: Tes Global
+dependencies:
+  - tg_migration

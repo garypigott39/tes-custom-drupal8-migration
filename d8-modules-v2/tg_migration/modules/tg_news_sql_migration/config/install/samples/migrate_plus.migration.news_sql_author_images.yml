@@ -1,0 +1,81 @@
+id: news_sql_author_images
+
+label: News author images (local files) - SQL
+
+migration_group: news_sql
+
+migration_tags:
+  - news migration
+  - news author images sql
+
+source:
+  plugin: tg_sql_files
+
+  source_sql:
+    table: field_data_field_byline_photo
+    field: field_byline_photo_fid
+    bundle: 'byline'
+    delta: 0
+
+  selection: null
+
+  keys:
+    - fid
+
+destination:
+  plugin: entity:file
+
+process:
+  temp_file_name:
+    plugin: tg_nice_file_name
+    source: uri
+    basename: true
+
+  file_source:
+    -
+      plugin: tg_skip_on_empty
+      source: uri
+      method: row
+    -
+      plugin: tg_source_file_path
+      file_source:
+        domain: '/tmp/local_images'
+        local_file: 'tes.com'
+
+  file_dest:
+    -
+      plugin: callback
+      source: uri
+      callable: basename
+    -
+      plugin: tg_file_path
+      folder: 'public://author-images'
+      niceify: true
+      shorten: 60
+
+  filename:
+    plugin: tg_nice_stub_name
+    source: '@temp_file_name'
+    prefix: 'Stub author image: '
+
+  type:
+    plugin: default_value
+    source: type
+    default_value: 'undefined'
+
+  uri:
+    plugin: tg_file_download
+    source:
+      - '@file_source'
+      - '@file_dest'
+    guzzle:
+      timeout: 90
+    local_file: 'move'
+    valid_path_regex: '#^/tmp/local_images/#'
+    clear_stubs: true
+
+  status: constants/permanent_file_status
+
+  uid: constants/admin_user
+
+migration_dependencies: {}
